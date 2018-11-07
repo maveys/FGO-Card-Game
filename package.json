@@ -1,0 +1,36 @@
+{
+  "name": "FGO-Card-Game",
+  "version": "1.0.0",
+  "description": "Turn based card game based on Fate/Grand Order.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maveys/FGO-Card-Game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maveys/FGO-Card-Game/issues"
+  },
+  "homepage": "https://github.com/maveys/FGO-Card-Game#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.17.1",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "ejs": "~2.5.7",
+    "express": "^4.15.2",
+    "express-handlebars": "^3.0.0",
+    "express-messages": "^1.0.1",
+    "express-session": "^1.15.2",
+    "joi": "^14.0.4",
+    "mongoose": "^5.3.10",
+    "morgan": "^1.8.1",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0"
+  }
+}
