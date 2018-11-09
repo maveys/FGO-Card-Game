@@ -5,10 +5,23 @@
 </head>
 <body>
 <% include partials/navbar %>
-<div id="boardContainer" class="container-fluid bg-3 text-center">    
-  <h3><%= user.username %></h3><br>
-  welp
+<div class="container-fluid" id="field">
+    <div id="opponentFieldContainer" class="container-fluid bg-3 "></div>
+    <div id="selfFieldContainer" class="container-fluid bg-3 text-center">
+      <h5>SERVANTS IN PLAY</h5>
+    </div>
 </div>
 </body>
 <% include partials/script %>
+<script>
+  $(function () {
+    var socket = io();
+    socket.emit('join-room', { username: '<%= user.username %>' });
+    socket.emit('init-game');
+    socket.on('init-game', function(data) {
+      var field = JSON.parse(data);
+      console.log(field);
+    });
+  });
+</script>
 </html>
