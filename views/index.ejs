@@ -6,21 +6,68 @@
 <body>
 <% include partials/navbar %>
 <div class="container-fluid" id="field">
-    <div id="opponentFieldContainer" class="container-fluid bg-3 "></div>
-    <div id="selfFieldContainer" class="container-fluid bg-3 text-center">
-      <h5>SERVANTS IN PLAY</h5>
+    <div id="opponentFieldContainer" class="container-fluid bg-3 text-center row col-lg-12">
+        <div class="col-md-2">
+            <span class="fieldText">Prize Cards</span>
+            <img class="cardOnField" src="/public/img/cardBack.png">
+          </div>
+          <div class="col-md-8 row">
+            <div class="col-md">
+            </div>
+            <div class="col-md">
+                <img class="cardOnField cardInPlay opponentCard" src="/public/img/cardBack.png">
+            </div>
+            <div class="col-md">
+            </div>
+          </div>
+          <div class="col-md-2">
+            <span class="fieldText">Throne of Heroes</span>
+            <img class="cardOnField" src="/public/img/45.png">
+          </div>
     </div>
+    <div id="selfFieldContainer" class="container-fluid bg-3 text-center row col-lg-12">
+      <div class="col-md-2">
+        <span class="fieldText">Prize Cards</span>
+        <img class="cardOnField" src="/public/img/cardBack.png">
+      </div>
+      <div class="col-md-8 row">
+          <div class="col-md">
+          </div>
+          <div class="col-md">
+              <img class="cardOnField cardInPlay" src="/public/img/54.png">
+          </div>
+          <div class="col-md">
+          </div>
+      </div>
+      <div class="col-md-2">
+        <span class="fieldText">Throne of Heroes</span>
+        <img class="cardOnField" src="/public/img/38.png">
+      </div>
+    </div>
+    <div id="userHand" class="row col-md-12"></div>
+    <div id="opponentHandContainer" class="row col-md-12"></div>
 </div>
 </body>
 <% include partials/script %>
 <script>
-  $(function () {
     var socket = io();
-    socket.emit('join-room', { username: '<%= user.username %>' });
-    socket.emit('init-game');
+  // TODO: Extract to seperate js file/clean up
+  $(function () {
+    socket.emit('createGameInstance', { username: '<%= user.username %>'});
+    socket.emit('update-hand');
+    socket.emit('update-opponent-hand');
     socket.on('init-game', function(data) {
       var field = JSON.parse(data);
       console.log(field);
+    });
+    socket.on('updated-hand', function(data) {
+      $('#userHand').html(data);
+    });
+    socket.on('updated-opponent-hand', function(data) {
+      $('#opponentHandContainer').html(data);
+    });
+    socket.on('update-board', function(data) {
+
     });
   });
 </script>

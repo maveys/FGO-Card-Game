@@ -1,0 +1,44 @@
+<div class="col-md-4"></div>
+<div class="col-md-8 deckContainer">
+    <% if (hand) { %>
+        <% if (hand.length > 0) { %>
+            <img data-id="<%= hand[0] %>" class="servantInHand hoverCard" src="/public/img/<%= hand[0] %>.png">
+        <% } %>
+        <% for (var i = 1; i < hand.length; i++) { %>
+            <img data-id="<%= hand[i] %>" class="servantInHand" src="/public/img/<%= hand[i] %>.png">
+        <% } %>
+    <% } %> 
+</div>
+
+<div id="cardModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img class="modal-content" id="enlargedCard">
+            </div>
+            <div class="modal-footer">
+                <div class="cardModalBtns">
+                    <button id="placeServantBtn" class="btn btn-success" data-dismiss="modal">Place Servant</button>
+                    <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('.servantInHand').hover(function() {
+        $('.servantInHand').removeClass('hoverCard');
+        $(this).addClass('hoverCard');
+    });
+
+    $('.servantInHand').click(function() {
+        $('#enlargedCard').attr('src', $(this).attr('src'));
+        $('#enlargedCard').data('id', $(this).data('id'));
+        $('#cardModal').modal();
+    });
+
+    $('#placeServantBtn').click(function() {
+      socket.emit('play-servant', {servantId: $('#enlargedCard').data('id')});
+    }); 
+</script>
