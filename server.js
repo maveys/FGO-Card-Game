@@ -12,8 +12,6 @@ var fs = require('fs');
 var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
-var board = new Board();
-var rooms = ["default"];
 var gameCollection = new function() {
     this.totalGameCount = 0,
     this.gameList = [];
@@ -47,54 +45,18 @@ app.post('/updateOpponentHand', function(req, res) {
 io.on('connection', function(socket) {
     console.log('a user connected');
 
-    /***** Room events *****/
-    socket.on('createGameInstance', function(data) {
-        var gameRoom = {};
-        var gameId = (Math.random()+1).toString(36).slice(2, 18);
-        gameRoom.id = gameId;
-        gameRoom.board = new Board();
-        gameRoom.board.addPlayer('Mav', socket.id);
-        gameRoom.board.initGame();
-        gameCollection.gameList.push(gameRoom);
-        socket.gameId = gameId;
-    });
-
-    socket.on('join-room', function(data) {
-        console.log(data.username + " connected")
-        if (rooms.indexOf(data.room) === -1) {
-            socket.room = data.room;
-            socket.username = data.username;
-            socket.join(data.room);
-            socket.emit("success");
-        }
-        board.addPlayer(data.username, socket);
-    });
     socket.on('register', function(data) {
 
     });
 
-    /***** Board events *****/
-    socket.on('play-servant', function(data) {
-        let player = board.getPlayer(socket.id);
-        if (player.hand.includes(data.servantId)) {
-            console.log('played servant id: ' + data.servantId);
-        } else {
-            console.log('player does not have this card');
-        }
-    });
-    socket.on('init-game', function() {
-        board.initGame();
-        socket.emit('init-game', JSON.stringify(board));
-    });
-
     /***** Hand events  *****/
-    socket.on('update-hand', function() {
+    socket.on('updateHand', function() {
         var compiledHand = ejs.compile(fs.readFileSync(__dirname + '/views/partials/hand.ejs', 'utf8'));
         var obj =  findGameRoom(socket.gameId);
         var html = compiledHand({ hand: obj.board.getPlayerHand(socket.id) });
         socket.emit('updated-hand', html);
     });
-    socket.on('update-opponent-hand', function() {
+    socket.on('updateOpponentHand', function() {
         var compiledHand = ejs.compile(fs.readFileSync(__dirname + '/views/partials/opponentHand.ejs', 'utf8'));
         var html = compiledHand({ hand: findGameRoom(socket.gameId).board.getOpponentHand(socket.id) });
         socket.emit('updated-opponent-hand', html);
@@ -105,7 +67,7 @@ io.on('connection', function(socket) {
         for (var i = 0; i < gameCollection.gameList.length; i++) {
             if (gameCollection.gameList[i].id === socket.gameId) {
                 gameCollection.gameList[i].board.removePlayer(socket.id);
-                if (gameCollection.gameList[i].board.players.length == 0) {
+                if (gameCollection.gameList[i].board.players.size == 0) {
                     gameCollection.gameList.splice(i, 1);
                     return;
                 } else {
@@ -114,12 +76,62 @@ io.on('connection', function(socket) {
             }
         }
     });
+
+    /***** Game events *****/
+    socket.on('joinRoom', function(data) {
+        var index = gameRoomIndex(data.gameId);
+
+        if (index === -1) {
+            socket.emit('joinError', {error: "Room does not exist."});
+            return;
+        }
+        gameCollection.gameList[index].board.addPlayer('data.username', socket.id);
+        gameCollection.gameList[index].board.initGame();
+        socket.gameId = data.gameId;
+        socket.username = data.username;
+        socket.join(data.gameId);
+    
+        io.sockets.in(data.gameId).emit('initGame');
+    });
+
+    socket.on('createGameInstance', function(data) {
+        var gameRoom = {};
+        var gameId = (Math.random()+1).toString(36).slice(2, 18);
+        gameRoom.id = gameId;
+        gameRoom.board = new Board();
+        gameRoom.board.addPlayer('Mav', socket.id);
+        gameCollection.gameList.push(gameRoom);
+        socket.gameId = gameId;
+        socket.join(gameId);
+        socket.emit("roomCreated", {gameId: gameId});
+    });
+
+    socket.on('initGame', function() {
+        var compiledField = ejs.compile(fs.readFileSync(__dirname + '/views/partials/field.ejs', 'utf8'));
+        var html = compiledField();
+        socket.emit('initField', html);
+    });
+
+    socket.on('playServant', function(data) {
+        // check if user has servant in hand
+        var gameIndex = gameRoomIndex(socket.gameId);
+        //gameCollection.gameList[gameIndex].board; place servant on board 
+        socket.emit('placeServant', { success: true, servantId: data.servantId });
+        socket.broadcast.to(socket.gameId).emit('opponentPlayedServant')
+    });
 });
 
 function findGameRoom(id) {
     for (var i = 0; i < gameCollection.gameList.length; i++) {
         if (gameCollection.gameList[i].id === id) return gameCollection.gameList[i];
     }
+}
+
+function gameRoomIndex(id) {
+    for (var i = 0; i < gameCollection.gameList.length; i++) {
+        if (gameCollection.gameList[i].id === id) return i;
+    }
+    return -1;
 }
 server.listen(PORT, '0.0.0.0', function() {
     console.log('starting server on port ' + PORT);

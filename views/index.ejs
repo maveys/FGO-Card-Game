@@ -5,47 +5,44 @@
 </head>
 <body>
 <% include partials/navbar %>
+<div id="cardModal" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img class="modal-content" id="enlargedCard">
+            </div>
+            <div class="modal-footer">
+                <div class="cardModalBtns">
+                    <button id="placeServantBtn" class="btn btn-success" data-dismiss="modal">Place Servant</button>
+                    <button class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="gameModal" class="modal fade">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Game ID:</label>
+          <input type="text" class="form-control" id="gameIdInput" placeholder="Enter game id to join an existing server...">
+        </div>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" class="form-control" id="usernameInput" placeholder="Enter a username...">
+          </div>
+      </div>
+      <div class="modal-footer">
+          <div class="cardModalBtns">
+              <button id="createServerBtn" class="btn btn-primary" data-dismiss="modal">Create Server</button>
+              <button id="joinServerBtn" class="btn btn-primary" data-dismiss="modal">Join Server</button>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="container-fluid" id="field">
-    <div id="opponentFieldContainer" class="container-fluid bg-3 text-center row col-lg-12">
-        <div class="col-md-2">
-            <span class="fieldText">Prize Cards</span>
-            <img class="cardOnField" src="/public/img/cardBack.png">
-          </div>
-          <div class="col-md-8 row">
-            <div class="col-md">
-            </div>
-            <div class="col-md">
-                <img class="cardOnField cardInPlay opponentCard" src="/public/img/cardBack.png">
-            </div>
-            <div class="col-md">
-            </div>
-          </div>
-          <div class="col-md-2">
-            <span class="fieldText">Throne of Heroes</span>
-            <img class="cardOnField" src="/public/img/45.png">
-          </div>
-    </div>
-    <div id="selfFieldContainer" class="container-fluid bg-3 text-center row col-lg-12">
-      <div class="col-md-2">
-        <span class="fieldText">Prize Cards</span>
-        <img class="cardOnField" src="/public/img/cardBack.png">
-      </div>
-      <div class="col-md-8 row">
-          <div class="col-md">
-          </div>
-          <div class="col-md">
-              <img class="cardOnField cardInPlay" src="/public/img/54.png">
-          </div>
-          <div class="col-md">
-          </div>
-      </div>
-      <div class="col-md-2">
-        <span class="fieldText">Throne of Heroes</span>
-        <img class="cardOnField" src="/public/img/38.png">
-      </div>
-    </div>
-    <div id="userHand" class="row col-md-12"></div>
-    <div id="opponentHandContainer" class="row col-md-12"></div>
 </div>
 </body>
 <% include partials/script %>
@@ -53,12 +50,13 @@
     var socket = io();
   // TODO: Extract to seperate js file/clean up
   $(function () {
-    socket.emit('createGameInstance', { username: '<%= user.username %>'});
-    socket.emit('update-hand');
-    socket.emit('update-opponent-hand');
-    socket.on('init-game', function(data) {
-      var field = JSON.parse(data);
-      console.log(field);
+    $('#gameModal').modal();
+
+    socket.on('initField', function(data) {
+      $('#field').html(data);
+    });
+    socket.on('roomCreated', function(data) {
+      $('#field').html('<span class="tmp">Game Id: '+data.gameId+'</span><br><span class="tmp">Waiting for player to connect...</span>');
     });
     socket.on('updated-hand', function(data) {
       $('#userHand').html(data);
@@ -66,8 +64,35 @@
     socket.on('updated-opponent-hand', function(data) {
       $('#opponentHandContainer').html(data);
     });
-    socket.on('update-board', function(data) {
+    socket.on('joinSuccess', function(data) {
+      console.log(data, null, 2);
+    });
+    socket.on('initGame', function() {
+      socket.emit('initGame');
+      socket.emit('updateHand');
+      socket.emit('updateOpponentHand');
+    });
 
+    // field events
+    socket.on('opponentPlayedServant', function() {
+      $('#opponentMainCard').html('<img class="cardOnField cardInPlay opponentCard" src="/public/img/cardBack.png">');
+    });
+    socket.on('placeServant', function(data) {
+      if (data.success) {
+        $('#mainCard').html('<img class="cardOnField cardInPlay" src="/public/img/'+data.servantId+'.png">');
+      } else {
+        console.log('you do not have this card.')
+      }
+    });
+
+    $('#placeServantBtn').click(function() {
+      socket.emit('playServant', { servantId: $('#enlargedCard').data('id') });
+    });
+    $('#createServerBtn').click(function() {
+      socket.emit('createGameInstance', { username: $('#usernameInput').val()});
+    });
+    $('#joinServerBtn').click(function() {
+      socket.emit('joinRoom', {username: $('#usernameInput').val(), gameId: $('#gameIdInput').val()});
     });
   });
 </script>

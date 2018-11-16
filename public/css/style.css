@@ -103,3 +103,8 @@ html, body {
     border: none;
 }
 /* END Bootstrap override */
+
+.tmp {
+    color: white;
+    margin: auto;
+}
