@@ -32,19 +32,7 @@ app.get('/', function(req, res) {
     res.render('index', {user: {username: 'Mav'}});
 });
 
-app.post('/updateOpponentHand', function(req, res) {
-    console.log('request: ' + req.socketId);
-    let opp = board.getOpponentPlayer(req.socketId);
-    // delete later
-    console.log(opp);
-    opp.hand = [1, 2, 3, 4, 5, 6];
-    console.log(opp.hand)
-    res.render('opponentHand', { hand: opp.hand });
-});
-
 io.on('connection', function(socket) {
-    console.log('a user connected');
-
     socket.on('register', function(data) {
 
     });
@@ -56,6 +44,7 @@ io.on('connection', function(socket) {
         var html = compiledHand({ hand: obj.board.getPlayerHand(socket.id) });
         socket.emit('updated-hand', html);
     });
+
     socket.on('updateOpponentHand', function() {
         var compiledHand = ejs.compile(fs.readFileSync(__dirname + '/views/partials/opponentHand.ejs', 'utf8'));
         var html = compiledHand({ hand: findGameRoom(socket.gameId).board.getOpponentHand(socket.id) });
@@ -69,10 +58,8 @@ io.on('connection', function(socket) {
                 gameCollection.gameList[i].board.removePlayer(socket.id);
                 if (gameCollection.gameList[i].board.players.size == 0) {
                     gameCollection.gameList.splice(i, 1);
-                    return;
-                } else {
-                    return;
                 }
+                return;
             }
         }
     });
@@ -115,9 +102,13 @@ io.on('connection', function(socket) {
     socket.on('playServant', function(data) {
         // check if user has servant in hand
         var gameIndex = gameRoomIndex(socket.gameId);
-        //gameCollection.gameList[gameIndex].board; place servant on board 
-        socket.emit('placeServant', { success: true, servantId: data.servantId });
-        socket.broadcast.to(socket.gameId).emit('opponentPlayedServant')
+        if (gameCollection.gameList[gameIndex].board.updatePlayer(socket.id, data.servantId)) {
+            socket.emit('placeServant', { success: true, servantId: data.servantId });
+            socket.broadcast.to(socket.gameId).emit('opponentPlayedServant', { imgLink: 'cardBack' });
+        } else {
+            // TODO
+            console.log('player cannot place this card');
+        }
     });
 });
 

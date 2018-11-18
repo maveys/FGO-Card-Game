@@ -1,11 +1,11 @@
 <div class="col-md-4"></div>
-<div class="col-md-8 deckContainer">
+<div id="hand" class="col-md-8 deckContainer">
     <% if (hand) { %>
         <% if (hand.length > 0) { %>
-            <img data-id="<%= hand[0] %>" class="servantInHand hoverCard" src="/public/img/<%= hand[0] %>.png">
+            <img data-id="<%= hand[0] %>" id="<%= hand[0] %>" class="servantInHand hoverCard" src="/public/img/<%= hand[0] %>.png">
         <% } %>
         <% for (var i = 1; i < hand.length; i++) { %>
-            <img data-id="<%= hand[i] %>" class="servantInHand" src="/public/img/<%= hand[i] %>.png">
+            <img data-id="<%= hand[i] %>" id="<%= hand[i] %>" class="servantInHand" src="/public/img/<%= hand[i] %>.png">
         <% } %>
     <% } %> 
 </div>

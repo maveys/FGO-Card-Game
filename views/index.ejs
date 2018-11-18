@@ -58,12 +58,6 @@
     socket.on('roomCreated', function(data) {
       $('#field').html('<span class="tmp">Game Id: '+data.gameId+'</span><br><span class="tmp">Waiting for player to connect...</span>');
     });
-    socket.on('updated-hand', function(data) {
-      $('#userHand').html(data);
-    });
-    socket.on('updated-opponent-hand', function(data) {
-      $('#opponentHandContainer').html(data);
-    });
     socket.on('joinSuccess', function(data) {
       console.log(data, null, 2);
     });
@@ -74,20 +68,28 @@
     });
 
     // field events
-    socket.on('opponentPlayedServant', function() {
-      $('#opponentMainCard').html('<img class="cardOnField cardInPlay opponentCard" src="/public/img/cardBack.png">');
+    socket.on('updated-hand', function(data) {
+      $('#userHand').html(data);
     });
-    socket.on('placeServant', function(data) {
-      if (data.success) {
-        $('#mainCard').html('<img class="cardOnField cardInPlay" src="/public/img/'+data.servantId+'.png">');
-      } else {
-        console.log('you do not have this card.')
-      }
+    socket.on('updated-opponent-hand', function(data) {
+      $('#opponentHandContainer').html(data);
+    });
+    socket.on('opponentPlayedServant', function(data) {
+      $('#opponentMainCard').html('<img class="cardOnField cardInPlay opponentCard" src="/public/img/'+ data.imgLink +'.png">');
     });
 
     $('#placeServantBtn').click(function() {
       socket.emit('playServant', { servantId: $('#enlargedCard').data('id') });
     });
+    socket.on('placeServant', function(data) {
+      if (data.success) {
+        $('#mainCard').html('<img class="cardOnField cardInPlay" src="/public/img/'+data.servantId+'.png">');
+        $('#' + data.servantId).remove();
+      } else {
+        console.log('you do not have this card.')
+      }
+    });
+
     $('#createServerBtn').click(function() {
       socket.emit('createGameInstance', { username: $('#usernameInput').val()});
     });
