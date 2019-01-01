@@ -5,6 +5,7 @@
 </head>
 <body>
 <% include partials/navbar %>
+<% include partials/errorModal %>
 <div id="cardModal" class="modal fade">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -86,10 +87,14 @@
         $('#mainCard').html('<img class="cardOnField cardInPlay" src="/public/img/'+data.servantId+'.png">');
         $('#' + data.servantId).remove();
       } else {
+        $('#errorMessage').val(data.message);
+        $('#errorModal').modal();
         console.log('you do not have this card.')
       }
     });
-
+    socket.on('draw', function() {
+      console.log('draw')
+    });
     $('#createServerBtn').click(function() {
       socket.emit('createGameInstance', { username: $('#usernameInput').val()});
     });

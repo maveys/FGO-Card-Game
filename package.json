@@ -4,7 +4,7 @@
   "description": "Turn based card game based on Fate/Grand Order.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -34,5 +34,8 @@
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "socket.io": "^2.1.1"
+  },
+  "devDependencies": {
+    "ava": "1.0.0-rc.2"
   }
 }
